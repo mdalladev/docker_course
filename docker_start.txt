@@ -1,0 +1,179 @@
+creating a container from an Image
+DockHub - public (busybox as example)
+
+(see the local images)
+docker images 
+
+(create container - without version, it will install the latest)
+docker run imagename:version echo "echo message"
+
+(list the container content)
+docker run imagename:version ls
+
+(goes inside the docker)
+(twice will create another instance of the container)
+docker run -i -t imagename:version
+
+(run the docker for a finite time	--rm removes the container after it exit)
+docker run -d imagename:version sleep sec_value
+
+(set a name to the docker)
+docker run --name name_as_alias imagename:version
+
+(shows the docks that are running  -a shows all that were running)
+docker ps
+
+(display all low information about the container)
+docker run -d imagename:version sleep 100
+docker inspect id_generated_by_the_previous_command
+
+(shows the container running)
+docker logs id_of_the_command_run_-d_
+
+(shows the layers of an image)
+docker history imagename:version
+
+
+*** Build Docker Images by using Docker Commit Command ***
+
+(1-normal installation  2-install git modifying the container  3-save a new image with the changes)
+
+docker run -it debian:jessie
+inside debian: apt-get update && apt-get install -y git
+docker ps -a
+docker commit id_last_command repository:tag_by_my_own
+
+
+
+*** Build Docker Images by writing a Docker file ***
+
+(inside a linux base)
+touch Dockerfile
+vi Dockerfile
+
+(inside file)
+FROM debian:jessie
+RUN apt-get update
+RUN apt-get install -y git
+RUN apt-get install -y vim
+
+
+:wq!			<--- to save
+
+(in this case, . is the path of the files)
+docker build -t image-name .
+
+(In the case of creating another image with the same content, it will use the cache)
+(to avoid the cache, we can use --no-cache=true)
+docker build -t image-name . --no-cache=true
+
+
+*** send an image to Docker Hub ***
+(ALWAYS TAG the image)
+docker tag id_image image_name:tag
+
+(LOG in the HUB)
+docker login --username=username
+password
+
+(push)
+ docker push image_name:tag
+
+
+****(containerize a hello world web app)****
+-put the structure in a directory
+-build the image
+docker build -t dockerapp:v0.1 .
+docker run -d -p 5000:5000 image_id
+
+(... test app in browser localhost:5000)
+(verify the app running)
+docker exec -it id_container bash
+pwd
+cd /home/admin
+ps axu
+
+
+
+*** implement a simple key-value lookup service ***
+clone the repository before a git checkout
+git stash
+git checkout v0.2
+docker build -t dockerapp:v02 .
+docker stop container_name
+docker run -p -d 5000:5000 dockerapp:v0.2
+****make the changes in the files as in the lecture 21****
+docker run -d --name redis redis:3.2.0
+docker build -t dockerapp:v0.3 .
+docker ps (be sure only redis is running)
+docker run -d -p 5000:5000 --link redis dockerapp:v0.3
+
+*** verify how does it work ***
+docker exec -it id_dockerapp bash
+more /etc/hosts
+**-> each ID will be linked with one different IP
+exit (bash mode)
+docker inspect redis_id (check the IP)
+docker exec -it id_dockerapp bash
+ping redis
+
+
+**** Automate Current Worflow with Docker Compose ****
+create the docker-compose.yml file
+stop the services
+docker-compose up
+docker-compose up -d
+docker-compose ps
+docker-compose logs
+docker-compose logs -f
+docker-compose logs container_name
+docker-compose stop
+docker-compose rm (remove all containers)
+
+
+****** Docker Networking ******
+NONE Netwok
+docker run -d --net none busybox  sleep 1000
+docker exec -it id /bin/ash
+**try to ping somewhere, there is no response
+
+
+BRIDGE Network
+by default
+docker run -d --name container_1 busybox sleep 1000
+docker exec -it container_1 ifconfig (check the ip)
+
+creating my network
+docker network create --driver bridge my_bridge_network
+docker network ls
+docker network inspect my_bridge_network (It shows the range of subnet that is differente from default)
+
+(After created, we can create containers and attach them to the new network)
+docker run -d --name container_3 --net my_bridge_network busybox sleep 1000
+docker exec -it container_3 ifconfig (the ip is from the new range)
+
+(to connect different networks, we can use a command)
+docker network connect bridge container_3
+docker exec -it container_3 ifconfig (now, this container has another network interface with another range)
+docker exec -it container_3 ping 127.17.0.3
+docker network disconnect bridge container_3
+
+
+
+**** Host Network and Overlay Network ****
+docker run -d --name container_4 --net host busybox sleep 1000
+docker exec -it container_4 ifconfig (now, it has all interfaces from the host)
+
+Overlay must be searched.
+
+
+**** Docker compose to define Network environment ****
+check the yml file
+
+
+
+**** Continuous integration Pipeline ****
+update to v0.5
+docker compose up -d
+
+

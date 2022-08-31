@@ -1,0 +1,138 @@
+(-ti = terminal & iteractivity)
+(-d = terminal execute as a daemon)
+docker run -ti ubuntu
+
+(exit the containter without finish it)
+Ctr+p+q
+
+(iterate in the container via ternimal)
+docker container attach id_container
+
+
+(to execute a command in a container, we use "exec")
+docker container exec -it nginx bash
+
+**If the main process of the container isn't a bash, maybe we can't leave the container without stop it. 'nginx example'
+
+docker container stop id_container
+docker container start id_container
+docker container restart id_container
+docker container pause id_container
+docker container unpause id_container
+
+(logs from container    -f follow log output)
+docker container logs id_container
+
+(remove container    -f force)
+docker container rm id_container 
+
+(status)
+docker container stats id_container
+
+(process)
+docker container top id_container
+
+(parameter - memory)
+docker run -d -m 128M nginx
+
+(parameter - memory and cpu)
+docker run -d -m 128M --cpus 0.5 nginx
+
+(update the parameters of the container running)
+docker update --cpus 0.3 -m 150M id_container
+
+
+***(create image with dockerfile)***
+docker image buid -t my_tag:1.0 .
+
+
+
+
+********VOLUMES*******
+(type bind when we have the directory that will receive the data)
+
+mkdir /opt/volumetest
+docker container run -ti --mount type=bind,src=/devops/opt/volumetest,dst=/containerdirectory debian
+(read only)
+docker container run -ti --mount type=bind,src=/devops/opt/volumetest,dst=/containerdirectory,ro debian
+
+(type volume is created in the docker structure)
+docker volume ls
+docker volume create my_volume
+docker volume inspect my_volume
+(create or copy some files to this place)
+/data/docker/volumes/my_volume/_data
+docker container run -ti --mount type=volume,src=my_volume,dst=/containerdirectory debian
+
+(we can create several containers to write in the volume. before delete the volume, the containers must be removed)
+docker volume rm my_volume
+
+
+****prune****
+used with subcommands
+
+(remove all containers not used)
+docker container prune
+
+
+(remove all volumes neither used or attached to a container ATTENTION TO THE DATA)
+docker container prune
+
+**********DATA ONLY*********
+(create a volume to concentrate the data, share with another containers)
+(old sintaxe    -  de difference between run and create is that create doesn't up the container)
+(in the example, /volumecontainer was replaced by data because permissions from the image)
+docker container create -v d:\devops\volumetest:/volumecontainer --name dbdados centos
+
+(create the containerer setting the volume-dados to dbdados that was just created. it's offline.   -e means environment)
+(the ports must be different)
+docker container run -d -p 5432:5432 --name pgsql1 --volumes-from dbdados -e POSTGRESQL_USER=docker -e  POSTGRESQL_PASS=docker -e  POSTGRESQL_DB=docker kamui/postgresql
+docker container run -d -p 5433:5432 --name pgsql1 --volumes-from dbdados -e POSTGRESQL_USER=docker -e  POSTGRESQL_PASS=docker -e  POSTGRESQL_DB=docker kamui/postgresql
+
+//(to create a container to write in the docker volumes)
+//docker container create -v /data --name dbdados centos
+
+(now, in the path d:\devops\volumetest there are the data from the postgresql)
+
+***** THE SAME EXAMPLE AS TYPE=VOLUME *****
+docker volume create my_volume2
+docker container run -d -p 5432:5432 --name pgsql1 --mount type=volume,src=my_volume2,dst=//data -e POSTGRESQL_USER=docker -e  POSTGRESQL_PASS=docker -e  POSTGRESQL_DB=docker kamui/postgresql
+
+day 2 -7 rever
+(backup of the previous volume that is running)
+(we need create a container with 2 volumes. one to take the backup and another to receive the data)
+docker container run -ti --mount type=volume,src=my_volume2,dst=//data -- mount type=bind,src=//d/devops/backup,dst=/backupcontainer debian tar -cvf /backupcontainer/bkp-banco.tar /data
+--precisou quebrar até o comando tar
+
+
+
+***** Imagens *****
+Dockerfile
+FROM debian
+RUN apt-get update && apt-get install -y apache2 && apt-get clean
+ENV APACHE_LOCK_DIR="/var/lock"
+ENV APACHE_PID_FILE="/var/run/apache2.pid"
+ENV APACHE_RUN_USER="www-data"
+ENV APACHE_RUN_GROUP="/var/log/apache2"
+
+COPY index.html /var/www/html/
+
+LABEL description="webserver"
+
+VOLUME /var/www/html/
+EXPOSE 80
+
+
+ENTRYPOINT ["/usr/sbin/apachectl"]
+CMD ["-D", "FOREGROUND"]
+--------------------------------
+OBS: ADD index.html /var/www/html/
+usando ADD no lugar do copy, ele consegue copiar arquivos da internet e arquivos tar, já copia descomprimidos
+
+
+docker image build -t my_apache:2.0.0 .
+docker container run -d -p 8080:80 my_apache:2.0.0
+
+dia 2 aula 13
+
+

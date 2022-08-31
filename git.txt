@@ -1,0 +1,205 @@
+***inicia repositório (de dentro da pasta do projeto - vai criar a pasta .git)
+git init
+
+***existem quatro estados para os arquivos untracked-unmodified-modified-staged
+1 - untracked - arquivo criado, mas ainda não visto pelo git para adicionar no repositório
+
+2 - unmodified - arquivo identificado como NOVO (staged) para ser enviado ao repositório após o commit
+
+3 - modified - arquivo identificado como MODIFICADO precisa do comando ADD para ficar (staged) repositório após o commit
+
+4 - staged - aguardando o commit para voltar ao estado unmodified
+
+cria o arquivo
+git status
+(untracked - need add)
+
+git add nome_do_arquivo
+git status
+(changes to be commited - new file: nome_do_arquivo)
+
+modifica o arquivo
+git status
+(changes not staged for commit - modified: nome_do_arquivo)
+
+git add nome_do_arquivo
+git status
+(changes to be commited - new file: nome_do_arquivo)
+
+git commit -m "message about the changes"
+(shows a hash of the commit and the number of changes)
+
+git status
+(On branch master)
+(nothing to commit, working tree clean)
+
+*** modified without added, will show an error in the commit command
+
+
+*****git log*****
+
+$ git log
+commit 5fa122bc6099e7defccae466e1cecbbd952b8ba3 (HEAD -> master)
+Author: Marlon <dallaliberamarlon@gmail.com>
+Date:   Mon Aug 29 23:58:19 2022 -0300
+
+    initial lines
+
+****git diff****
+It shows the difference between the old and new version before commit even before the add
+(all modified and what was modified)
+git diff <enter>
+
+(just the files modified)
+git diff --name-only
+
+
+**** revert changes****
+(before add)
+git checkout file_name
+
+(after add - status modified and diff doesn't show difference)
+(this command will pick up the file from the stage and put it in the HEAD where the user is working)
+git reset HEAD file_name
+(now, the diff shows the difference and the checkout works)
+git checkout file_name
+
+
+(after commit)
+the reset command has 3 types
+--soft (back one step, put the file in the stage again)
+--mixed (back two steps, put the file in the modified status)
+--hard (undo all changes)
+
+(we need use the penultimate hash because the last one will be eliminated)
+reset --soft hash_from_the _commit
+
+
+
+*** remote repository ***
+session 4 - follow the classes
+
+account github
+create sshkey
+add sshkey on github
+sync repositories
+
+(to add changes on the remote repository)
+(git push name_remote_repository name_branch)
+git push origin main
+
+
+(clone repository ---- "github-clone" is the folder that will be created)
+git clone git@github.com:mdalladev/git-test.git github-clone
+
+
+
+**** branch ****
+git checkout -b branch_name
+
+(this way will create the branch based on the master)
+git checkout -b branch_name master
+
+(show the branches)
+git branch
+
+(switch branch)
+git checkout branch_name
+
+(delete branch)
+git branch -D branch_name
+
+
+
+******* merge and rebase *******
+
+  134  mkdir merge-rebase
+  135  cd merge-rebase
+  136  git init
+  137  notepad first_file_master.txt
+  139  git status
+  140  git add first_file_master.txt
+  141  git commit -am "first commit first_file_master"
+  142  git log
+  143  git checkout -b testbranch
+  144  notepad first_file_testbranch.txt
+  145  git add first_file_testbranch.txt
+  146  git commit -am "first commit first_file_testbranch"
+  147  git log
+  148  git checkout master
+  149  git log
+  150  notepad second_file_master.txt
+  151  git add second_file_master.txt
+  152  git commit -m "second commit second_file_master"
+  153  git log
+  154  ls
+  155  git branch
+  156  git checkout testbranch
+  157  ls
+  158  git checkout master
+  159  git merge testbranch
+  160  git log
+  161  git log --graph
+  162  git checkout testbranch
+  163  ls
+  164  git checkout master
+  165  ls
+  166  notepad third_file_master.txt
+  167  git add third_file_master.txt
+  168  git commit -m "third commit third_file_master"
+  169  git log
+  171  git checkout -b rebase-branch
+  172  notepad first_file_rebase_branch.txt
+  173  ls
+  174  git add first_file_rebase_branch.txt
+  175  git commit -m "commit first_file_rebase_branch"
+  176  git log
+  177  git checkout master
+  178  ls
+  179  git log
+  180  notepad fourth_file_master.txt
+  181  git add fourth_file_master.txt
+  182  git commit -m "commit fourth_file_master"
+  183  git log
+  184  git rebase rebase-branch
+  185  git log
+  186  git log --graph
+  187  ls
+  188  history
+
+
+
+**** git stash ****
+(keep changes no commited into a file. It put in a state of WIP - work in progress)
+git stash
+
+(to back the changes)
+git stash apply
+
+git stash list
+git stash clear
+
+
+***alias***
+git config --global alias.s status
+
+
+
+*** versionar com tag ***
+rever
+
+
+*** git revert ***
+git revert hash_do_ultimo_commit
+(ele vai manter o último commit no histórico, mas vai liberar o arquivo das alterações. Com isso, é possivel pegar a hash desse commit que foi mantida e trabalhar depois usando o revert soft, mixed)
+
+**apagar tag remota**
+git push origin :tag
+
+**apagar branch remota**
+git push origin :branch
+
+
+****pull-request****
+just on the github plataform
+
